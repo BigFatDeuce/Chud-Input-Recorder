@@ -18,6 +18,7 @@
 </p>
 
 <p align="center">
+  <a href="#-download">Download</a> ·
   <a href="#-quick-start">Quick start</a> ·
   <a href="#-features">Features</a> ·
   <a href="#-privacy-and-safety">Privacy</a> ·
@@ -41,6 +42,15 @@ Most macro recorders give you a big red button and a list of coordinates. Chud i
 - **It can see the screen.** Wait for an image, a colour or a piece of text, then click it wherever it appears.
 - **Gamepads included.** Record XInput or evdev pads and replay them on a virtual controller.
 - **Honest by design.** It works offline, shows when it is recording, has an emergency stop that always works, and never works around the operating system's protections.
+
+## ⬇ Download
+
+Get the latest build from **[Releases](https://github.com/BigFatDeuce/Chud-Input-Recorder/releases/latest)**:
+
+| System | Files |
+|---|---|
+| Windows 10/11 | a portable `.zip` or `.exe`, nothing to install |
+| Linux (preview) | AppImage, `.deb` and `.rpm` |
 
 ## ⚡ Quick start
 
