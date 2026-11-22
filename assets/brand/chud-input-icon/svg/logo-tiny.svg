@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Chud Input (16-24 px)"><title>Chud Input (16-24 px)</title>
+<path fill="#e8eef6" stroke="#011128" stroke-width="4" stroke-linejoin="round" d="M12 50V26Q12 6 32 6Q52 6 52 26V50Q48 46 44 50Q40 54 36 50Q32 46 28 50Q24 54 20 50Q16 46 12 50Z"/>
+<path fill="#011128" d="M14 22L30 26V29L14 25ZM50 22L34 26V29L50 25Z"/>
+<rect x="15" y="27" width="14" height="9" rx="1.5" fill="#ffffff" stroke="#011128" stroke-width="2.5"/>
+<rect x="35" y="27" width="14" height="9" rx="1.5" fill="#ffffff" stroke="#011128" stroke-width="2.5"/>
+<path fill="none" stroke="#011128" stroke-width="2.5" d="M29 30H35"/>
+<rect x="20.5" y="30" width="3.5" height="3.5" fill="#011128"/><rect x="40" y="30" width="3.5" height="3.5" fill="#011128"/>
+<path fill="none" stroke="#011128" stroke-width="3" stroke-linecap="round" d="M26 45Q32 41 38 45"/>
+<circle cx="52" cy="12" r="10" fill="#011128"/><circle cx="52" cy="12" r="6" fill="#e0342c"/>
+<rect x="22" y="53" width="20" height="10" rx="2.5" fill="#f9c83a" stroke="#011128" stroke-width="2.5"/>
+</svg>

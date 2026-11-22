@@ -1,0 +1,20 @@
+[package]
+name = "chud-cli"
+# Command line tools and diagnostics.
+
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+chud-core = { version = "0.1.0", path = "../chud-core" }
+chud-engine = { version = "0.1.0", path = "../chud-engine" }
+chud-platform = { version = "0.1.0", path = "../chud-platform" }
+crossbeam-channel = "0.5.17"
+serde_json = "1.0.154"
+
+[[bin]]
+name = "chud"
+path = "src/main.rs"

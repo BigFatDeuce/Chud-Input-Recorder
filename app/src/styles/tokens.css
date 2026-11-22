@@ -1,0 +1,97 @@
+/* Design tokens. Brand colours come from the logo README; everything else
+   derives from them. */
+:root {
+  /* Brand */
+  --navy-950: #011128;
+  --navy-900: #0a2750;
+  --blue-700: #123f7d;
+  --blue-500: #2c639f;
+  --steel-400: #6d8cab;
+  --gold-400: #f9c83a;
+  --gold-600: #d9a02c;
+  --gold-200: #ffe486;
+  --rec: #e0342c;
+  --ghost: #e8eef6;
+  --ghost-shade: #c3d2e4;
+  --cyan: #38d6ff;
+
+  /* Extended data palette (lanes, key groups) */
+  --orange: #ffad5c;
+  --mint: #8fe8c2;
+  --sky: #82b6ff;
+  --pink: #ff86b0;
+  --violet: #a99bff;
+
+  /* Surfaces */
+  --bg: var(--navy-950);
+  --bg-deep: #000a1a;
+  --surface: rgba(10, 39, 80, 0.52);
+  --surface-strong: rgba(10, 39, 80, 0.82);
+  --surface-raised: rgba(18, 63, 125, 0.42);
+  --surface-hover: rgba(44, 99, 159, 0.28);
+  --surface-active: rgba(44, 99, 159, 0.42);
+  --line: rgba(109, 140, 171, 0.2);
+  --line-strong: rgba(109, 140, 171, 0.38);
+  --line-gold: rgba(249, 200, 58, 0.42);
+
+  /* Text */
+  --text: var(--ghost);
+  --text-2: #a9bdd4;
+  --text-3: #7189a6;
+  --text-on-gold: var(--navy-950);
+
+  /* Accents */
+  --accent: var(--gold-400);
+  --accent-strong: var(--gold-600);
+  --accent-soft: rgba(249, 200, 58, 0.14);
+  --info: var(--cyan);
+  --info-soft: rgba(56, 214, 255, 0.12);
+  --danger: var(--rec);
+  --danger-soft: rgba(224, 52, 44, 0.16);
+  --ok: var(--mint);
+
+  /* Glow (scaled by --glow, 0..1, from settings) */
+  --glow: 0.7;
+  --glow-gold: 0 0 calc(18px * var(--glow)) rgba(249, 200, 58, calc(0.45 * var(--glow)));
+  --glow-cyan: 0 0 calc(18px * var(--glow)) rgba(56, 214, 255, calc(0.42 * var(--glow)));
+  --glow-rec: 0 0 calc(24px * var(--glow)) rgba(224, 52, 44, calc(0.65 * var(--glow)));
+
+  /* Shape */
+  --r-xs: 4px;
+  --r-sm: 7px;
+  --r-md: 11px;
+  --r-lg: 16px;
+  --r-xl: 22px;
+  --blur: 16px;
+  --shadow: 0 14px 40px -18px rgba(0, 5, 15, 0.9), 0 2px 6px rgba(0, 5, 15, 0.35);
+
+  /* Type */
+  --font: "Sora Variable", "Segoe UI", system-ui, sans-serif;
+  --mono: "JetBrains Mono Variable", "Cascadia Mono", Consolas, monospace;
+  --fs-xs: 11px;
+  --fs-sm: 12px;
+  --fs-md: 13px;
+  --fs-lg: 15px;
+  --fs-xl: 19px;
+  --fs-xxl: 26px;
+
+  /* Motion */
+  --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --t-fast: 120ms;
+  --t-med: 220ms;
+  --t-slow: 420ms;
+
+  /* Layout */
+  --titlebar-h: 40px;
+  --rail-w: 76px;
+  --transport-h: 76px;
+
+  color-scheme: dark;
+}
+
+:root[data-reduce-motion="true"] {
+  --t-fast: 0ms;
+  --t-med: 0ms;
+  --t-slow: 0ms;
+}

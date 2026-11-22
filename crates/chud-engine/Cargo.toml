@@ -1,0 +1,21 @@
+[package]
+name = "chud-engine"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+repository.workspace = true
+authors.workspace = true
+
+[dependencies]
+chud-core = { version = "0.1.0", path = "../chud-core" }
+chud-platform = { version = "0.1.0", path = "../chud-platform" }
+crossbeam-channel = "0.5.17"
+log = "0.4.35"
+parking_lot = "0.13.0"
+serde = { version = "1.0.229", features = ["derive"] }
+thiserror = "2.0.21"
+
+[dev-dependencies]
+crossbeam-channel = "0.5.17"
+parking_lot = "0.13.0"
+serde_json = "1.0.154"

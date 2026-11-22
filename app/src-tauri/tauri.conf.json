@@ -1,0 +1,52 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Chud Input Recorder",
+  "mainBinaryName": "chud-input-recorder",
+  "version": "0.1.0",
+  "identifier": "com.bigfatdeuce.chud-input-recorder",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "withGlobalTauri": false,
+    "windows": [
+      {
+        "label": "main",
+        "title": "Chud Input Recorder",
+        "width": 1480,
+        "height": 920,
+        "minWidth": 800,
+        "minHeight": 500,
+        "decorations": false,
+        "visible": false,
+        "dragDropEnabled": true,
+        "backgroundColor": "#011128"
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self' ipc: http://ipc.localhost; img-src 'self' data: blob:; style-src 'self' 'unsafe-inline'; font-src 'self' data:; script-src 'self'; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": "all",
+    "category": "Utility",
+    "shortDescription": "Record, edit and replay keyboard, mouse and gamepad input",
+    "longDescription": "Chud Input Recorder records keyboard, mouse and gamepad input with precise timing, lets you edit recordings on a timeline, and replays them with loops, conditions and automation blocks. Everything stays on your computer.",
+    "copyright": "MIT License",
+    "icon": [
+      "../../assets/brand/chud-input-icon/png/icon-32.png",
+      "../../assets/brand/chud-input-icon/png/icon-128.png",
+      "../../assets/brand/chud-input-icon/png/icon-256.png",
+      "../../assets/brand/chud-input-icon/png/icon-512.png",
+      "../../assets/brand/chud-input-icon/icon.icns",
+      "../../assets/brand/chud-input-icon/icon.ico"
+    ],
+    "linux": {
+      "deb": { "depends": [] }
+    }
+  }
+}
