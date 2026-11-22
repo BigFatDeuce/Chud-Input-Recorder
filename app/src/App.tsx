@@ -15,6 +15,7 @@ import type { EngineEventMsg, EngineStatus, LibraryEntry, LiveInput, Saved } fro
 import { liveBus } from "./lib/live";
 import { useCountdownSound } from "./lib/sound";
 import { useZoomShortcuts } from "./lib/zoom";
+import { UpdateQuestion, useUpdateEvents } from "./lib/update";
 import { useLocalKeyBridge } from "./lib/localKeys";
 import { LibraryView } from "./views/Library";
 import { StudioView } from "./views/Studio";
@@ -50,6 +51,7 @@ export function App() {
   useCountdownSound();
   useZoomShortcuts();
   useLocalKeyBridge();
+  useUpdateEvents();
 
   // Boot.
   useEffect(() => {
@@ -110,6 +112,8 @@ export function App() {
       listen<Saved>("doc-saved", (e) => {
         const d = st().docs[e.payload.id];
         if (d) st().patchDoc(d.id, { dirty: false, history: e.payload.history, meta: { ...d.meta, modified_ms: e.payload.modified_ms } });
+        // The library cards (summary, flow, waveform) follow every save, autosaves included.
+        st().refreshLibrary();
       }),
       listen("tray-play", () => {
         const id = playTarget();
@@ -179,6 +183,7 @@ export function App() {
       </div>
       <Transport />
       <Toasts />
+      {ready && <UpdateQuestion />}
     </div>
   );
 }

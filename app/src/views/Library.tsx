@@ -1140,11 +1140,11 @@ function Details({
         </button>
       </div>
       <Sparkline data={s.density} color={m.color} height={56} />
-      <div className="row" style={{ gap: 8 }}>
-        <button className="btn primary grow" onClick={() => playMacro(entry.id)}>
+      <div className="insp-main-actions">
+        <button className="btn primary" onClick={() => playMacro(entry.id)}>
           <Play size={14} fill="currentColor" /> {t("transport.play")}
         </button>
-        <button className="btn grow" onClick={() => openDoc(entry.id)}>
+        <button className="btn" onClick={() => openDoc(entry.id)}>
           <AudioWaveform size={14} /> {t("lib.open_studio")}
         </button>
       </div>

@@ -163,6 +163,9 @@ export interface AppSettings {
   playback: PlaybackSettings;
   overlay: OverlaySettings;
   countdown_sound: boolean;
+  /** null: not asked yet. */
+  update_check: boolean | null;
+  update_last_check_ms: number;
   autosave: boolean;
   autosave_delay_ms: number;
   versions_kept: number;
@@ -541,4 +544,13 @@ export type FlowNode = { id: string; enabled: boolean } & Block;
 
 export interface Flow {
   blocks: FlowNode[];
+}
+
+export interface UpdateInfo {
+  current: string;
+  mode: "installer" | "portable" | "manual";
+  version: string | null;
+  notes: string | null;
+  date: string | null;
+  page: string;
 }

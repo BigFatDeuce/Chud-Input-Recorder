@@ -163,6 +163,30 @@ impl MacroDoc {
         id
     }
 
+    /// Replaces this macro's flow with a copy of `flow`, taken from another
+    /// macro whose images are `images`. The images the flow searches for come
+    /// along; one whose id is already used here by a different picture gets a
+    /// new id, and the copied flow is pointed at it.
+    pub fn import_flow(&mut self, flow: &Flow, images: &BTreeMap<String, Vec<u8>>) {
+        let mut flow = flow.clone();
+        let mut renamed = HashMap::new();
+        for id in flow.image_ids() {
+            let Some(png) = images.get(&id) else { continue };
+            match self.images.get(&id) {
+                Some(mine) if mine == png => {}
+                Some(_) => {
+                    let new = self.add_image(png.clone());
+                    renamed.insert(id, new);
+                }
+                None => {
+                    self.images.insert(id, png.clone());
+                }
+            }
+        }
+        flow.rename_images(&renamed);
+        self.flow = Some(flow);
+    }
+
     /// The stored images, decoded (undecodable ones are left out).
     pub fn decoded_images(&self) -> HashMap<String, Image> {
         self.images.iter().filter_map(|(id, png)| Image::from_png(png).ok().map(|i| (id.clone(), i))).collect()
@@ -263,5 +287,31 @@ mod tests {
         assert_eq!(m.map(1920 + 960, 540), (-640, 360));
         // Points outside every monitor use the nearest one.
         assert_eq!(m.map(-10, 0), (-13, 0));
+    }
+
+    #[test]
+    fn importing_a_flow_brings_its_images_and_resolves_clashes() {
+        let flow: Flow = serde_json::from_str(
+            r#"{"blocks":[{"type":"repeat","count":"3","body":[
+                {"type":"find","target":{"kind":"image","image":"btn"}},
+                {"type":"if","cond":{"type":"on_screen","target":{"kind":"image","image":"logo"}},"then":[]}
+            ]},{"type":"find","target":{"kind":"text","text":"OK"}}]}"#,
+        )
+        .unwrap();
+        assert_eq!(flow.image_ids().into_iter().collect::<Vec<_>>(), ["btn", "logo"]);
+        let src: BTreeMap<String, Vec<u8>> =
+            [("btn".into(), vec![1]), ("logo".into(), vec![2]), ("unused".into(), vec![3])].into_iter().collect();
+
+        let mut doc = MacroDoc::default();
+        doc.images.insert("btn".into(), vec![9]); // same id, another picture
+        doc.images.insert("logo".into(), vec![2]); // same picture
+        doc.import_flow(&flow, &src);
+
+        let ids = doc.flow.as_ref().unwrap().image_ids();
+        assert!(ids.contains("logo") && !ids.contains("btn") && ids.len() == 2);
+        let new = ids.iter().find(|i| *i != "logo").unwrap();
+        assert_eq!(doc.images[new], vec![1]);
+        assert_eq!(doc.images["btn"], vec![9], "the existing picture is kept");
+        assert!(!doc.images.contains_key("unused"), "only what the flow uses is copied");
     }
 }

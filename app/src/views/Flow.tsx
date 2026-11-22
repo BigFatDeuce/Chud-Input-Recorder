@@ -25,6 +25,8 @@ import {
   Plus,
   Power,
   Repeat,
+  Save,
+  LayoutList,
   ScanSearch,
   ScanText,
   ScrollText,
@@ -41,8 +43,8 @@ import {
 } from "lucide-react";
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { KeyPicker } from "../components/KeyPicker";
-import { NumberInput, Segmented, Toggle, useConfirm } from "../components/ui";
-import { t, tn, useLang, type TKey } from "../i18n";
+import { NumberInput, Segmented, Toggle, useConfirm, useContextMenu, usePrompt } from "../components/ui";
+import { fmtRelative, t, tn, useLang, type TKey } from "../i18n";
 import { playMacro } from "../lib/actions";
 import { api } from "../lib/api";
 import { fmtTime, msToUs, usToMs } from "../lib/format";
@@ -190,15 +192,87 @@ function blockTitle(type: BlockType): string {
 export function FlowView() {
   useLang();
   const doc = useActiveDoc();
-  if (!doc)
-    return (
-      <div className="empty-hero">
-        <Workflow size={48} className="faint" />
-        <h2>{t("flow.no_doc")}</h2>
-        <p className="muted">{t("flow.no_doc_body")}</p>
-      </div>
-    );
+  if (!doc) return <FlowHub />;
   return <FlowEditor key={doc.id} doc={doc} />;
+}
+
+/** Library macros that have a flow, most recently modified first. */
+function useSavedFlows(exceptId?: string) {
+  const listing = useStore((s) => s.listing);
+  return useMemo(
+    () =>
+      (listing?.entries ?? [])
+        .filter((e) => e.manifest.summary.has_flow && e.id !== exceptId)
+        .sort((a, b) => b.manifest.meta.modified_ms - a.manifest.meta.modified_ms),
+    [listing, exceptId],
+  );
+}
+
+/** Opens a macro straight in the Flow view. */
+async function openInFlow(id: string) {
+  const s = useStore.getState();
+  await s.openDoc(id, false);
+  s.setView("flow");
+}
+
+/** Creates a new macro holding an empty flow and opens it. */
+async function createFlow(name: string) {
+  const s = useStore.getState();
+  try {
+    const id = await api.docNew(name, s.libFolder);
+    await s.refreshLibrary();
+    await openInFlow(id);
+    const flow: Flow = { blocks: [] };
+    await api.docSetFlow(id, flow);
+    s.patchDoc(id, { flow, dirty: true });
+  } catch (e) {
+    s.fail(e, "error.library");
+  }
+}
+
+/** Flow home when no macro is open: the saved flows and a way to start one. */
+function FlowHub() {
+  const flows = useSavedFlows();
+  const prompt = usePrompt();
+  useEffect(() => {
+    useStore.getState().refreshLibrary();
+  }, []);
+  const newFlow = async () => {
+    const name = await prompt.ask({ title: t("flow.new"), value: t("flow.new_name"), confirm: t("common.create"), cancel: t("common.cancel") });
+    if (name?.trim()) await createFlow(name.trim());
+  };
+  return (
+    <div className="flow-hub">
+      <div className="flow-hub-head">
+        <Workflow size={36} className="gold-icon" />
+        <div className="grow">
+          <h2>{t("flow.hub_title")}</h2>
+          <p className="muted">{t("flow.hub_body")}</p>
+        </div>
+        <button className="btn primary" onClick={newFlow}>
+          <Plus size={14} /> {t("flow.new")}
+        </button>
+      </div>
+      {flows.length ? (
+        <div className="flow-hub-list">
+          {flows.map((e) => (
+            <button key={e.id} className="flow-hub-item panel" onClick={() => openInFlow(e.id)} title={t("flow.open")}>
+              <Workflow size={16} style={{ color: e.manifest.meta.color || undefined }} />
+              <span className="grow ellipsis">
+                <b>{e.manifest.meta.name}</b>
+                {e.manifest.meta.description && <span className="faint ellipsis flow-hub-desc">{e.manifest.meta.description}</span>}
+              </span>
+              {e.folder && <span className="chip">{e.folder}</span>}
+              <span className="faint">{fmtRelative(e.manifest.meta.modified_ms)}</span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <p className="muted flow-hub-empty">{t("flow.hub_empty")}</p>
+      )}
+      {prompt.element}
+    </div>
+  );
 }
 
 function FlowEditor({ doc }: { doc: DocState }) {
@@ -220,6 +294,68 @@ function FlowEditor({ doc }: { doc: DocState }) {
     },
     [doc.id, patchDoc, fail],
   );
+
+  // ── saving and reusing flows ──
+  const toast = useStore((s) => s.toast);
+  const menu = useContextMenu();
+  const others = useSavedFlows(doc.id);
+  const save = useCallback(async () => {
+    try {
+      const r = await api.docSave(doc.id);
+      if (r) {
+        const d = useStore.getState().docs[doc.id];
+        patchDoc(doc.id, { dirty: false, history: r.history, ...(d ? { meta: { ...d.meta, modified_ms: r.modified_ms } } : {}) });
+      } else {
+        // Already saved (autosave got there first): just clear the flag.
+        patchDoc(doc.id, { dirty: false });
+      }
+      useStore.getState().refreshLibrary();
+    } catch (e) {
+      fail(e, "error.save");
+    }
+  }, [doc.id, patchDoc, fail]);
+  useEffect(() => {
+    const k = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        void save();
+      }
+    };
+    window.addEventListener("keydown", k);
+    return () => window.removeEventListener("keydown", k);
+  }, [save]);
+  const reuseFrom = async (fromId: string, name: string) => {
+    if ((useStore.getState().docs[doc.id]?.flow?.blocks.length ?? 0) > 0) {
+      const ok = await confirm.ask({
+        title: t("flow.reuse_title"),
+        body: t("flow.reuse_body", { name }),
+        confirm: t("flow.reuse_confirm"),
+        cancel: t("common.cancel"),
+      });
+      if (!ok) return;
+    }
+    try {
+      const p = await api.docImportFlow(doc.id, fromId);
+      patchDoc(doc.id, { flow: p.flow, images: p.images, dirty: true });
+      setSelected(null);
+      toast("success", t("flow.reused", { name }));
+    } catch (e) {
+      fail(e, "error.edit");
+    }
+  };
+  const openReuseMenu = (el: HTMLElement) => {
+    const r = el.getBoundingClientRect();
+    menu.open(r.left, r.bottom + 4, [
+      { title: t("flow.reuse_menu") },
+      ...(others.length
+        ? others.slice(0, 30).map((e) => ({
+            label: e.folder ? `${e.manifest.meta.name} · ${e.folder}` : e.manifest.meta.name,
+            icon: <Workflow size={13} />,
+            onClick: () => void reuseFrom(e.id, e.manifest.meta.name),
+          }))
+        : [{ label: t("flow.reuse_none"), disabled: true }]),
+    ]);
+  };
 
   // Validate expressions (debounced, through the core parser).
   useEffect(() => {
@@ -398,8 +534,13 @@ function FlowEditor({ doc }: { doc: DocState }) {
             <button className="btn" onClick={() => setFlow([])}>
               {t("flow.create_empty")}
             </button>
+            <button className="btn" onClick={(e) => openReuseMenu(e.currentTarget)} disabled={!others.length} title={t("flow.reuse_hint")}>
+              <Copy size={14} /> {t("flow.reuse")}
+            </button>
           </div>
         </div>
+        {menu.element}
+        {confirm.element}
       </div>
     );
 
@@ -432,15 +573,30 @@ function FlowEditor({ doc }: { doc: DocState }) {
 
       <section className="flow-main">
         <div className="flow-bar">
+          <button className="btn sm icon ghost" onClick={() => useStore.setState({ activeDoc: null })} title={t("flow.hub_title")} aria-label={t("flow.hub_title")}>
+            <LayoutList size={15} />
+          </button>
           <h2 className="grow flow-title" title={doc.meta.name}>
             {t("nav.flow")} <span className="faint">· {doc.meta.name}</span>
           </h2>
+          {doc.dirty ? (
+            <button className="btn sm ghost save-btn dirty" onClick={save} title={`${t("studio.save")} (Ctrl+S)`}>
+              <Save size={13} /> {t("studio.unsaved")}
+            </button>
+          ) : (
+            <span className="saved-chip" title={t("flow.saved_hint")}>
+              {t("studio.saved")}
+            </span>
+          )}
           <span className="chip">{tn("flow.n_blocks_one", "flow.n_blocks_many", countNodes(blocks))}</span>
           {errCount > 0 && (
             <span className="chip rec">
               <TriangleAlert size={11} /> {tn("flow.n_errors_one", "flow.n_errors_many", errCount)}
             </span>
           )}
+          <button className="btn sm ghost" onClick={(e) => openReuseMenu(e.currentTarget)} title={t("flow.reuse_hint")}>
+            <Copy size={13} /> <span className="lbl-mid">{t("flow.reuse")}</span>
+          </button>
           <button
             className="btn sm ghost"
             title={t("flow.remove")}
@@ -531,6 +687,7 @@ function FlowEditor({ doc }: { doc: DocState }) {
         </div>
       )}
       {confirm.element}
+      {menu.element}
     </div>
   );
 }

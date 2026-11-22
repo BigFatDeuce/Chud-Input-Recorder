@@ -83,6 +83,9 @@ pub fn set_settings(app: tauri::AppHandle, state: State<App>, settings: AppSetti
         s.language = "auto".into();
     }
     let old = state.settings.read().clone();
+    // Written by the backend after each update check: never rolled back by an
+    // interface holding older settings.
+    s.update_last_check_ms = s.update_last_check_ms.max(old.update_last_check_ms);
     if old.library_dir != s.library_dir {
         let dir = state.paths.library_for(&s);
         let lib = Library::new(dir.clone()).map_err(|e| format!("{}: {e}", dir.display()))?;
@@ -550,6 +553,28 @@ pub fn doc_set_markers(state: State<App>, id: String, markers: Vec<Marker>) -> R
 #[tauri::command]
 pub fn doc_set_flow(state: State<App>, id: String, flow: Option<Flow>) -> R<()> {
     with_open(&state, &id, |o| o.doc.flow = flow)
+}
+
+/// Copies the flow of macro `from` (with the images it searches for) into the
+/// open macro `id`, replacing its flow. Returns the updated document.
+#[tauri::command]
+pub fn doc_import_flow(state: State<App>, id: String, from: String) -> R<DocPayload> {
+    if id == from {
+        return Err("a macro cannot copy its own flow".into());
+    }
+    let open_src = state.docs.lock().open.get(&from).map(|o| (o.doc.flow.clone(), o.doc.images.clone()));
+    let (flow, images) = match open_src {
+        Some(s) => s,
+        None => {
+            let (doc, _) = state.library().load(&from)?;
+            (doc.flow, doc.images)
+        }
+    };
+    let flow = flow.ok_or("this macro has no flow")?;
+    with_open(&state, &id, |o| {
+        o.doc.import_flow(&flow, &images);
+        DocPayload::of(o)
+    })
 }
 
 #[tauri::command]

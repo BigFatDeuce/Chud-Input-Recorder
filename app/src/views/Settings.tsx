@@ -147,6 +147,9 @@ function General({ s, set }: P) {
         <FieldRow label={t("set.close_to_tray")} hint={t("set.close_to_tray_hint")}>
           <Toggle value={s.close_to_tray} onChange={(close_to_tray) => set({ close_to_tray })} />
         </FieldRow>
+        <FieldRow label={t("set.update_check")} hint={t("set.update_check_hint")}>
+          <Toggle value={s.update_check === true} onChange={(on) => set({ update_check: on })} />
+        </FieldRow>
         <FieldRow label={t("set.confirm_delete")} hint={t("set.confirm_delete_hint")}>
           <Toggle value={s.confirm_delete} onChange={(confirm_delete) => set({ confirm_delete })} />
         </FieldRow>

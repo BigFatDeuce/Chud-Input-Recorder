@@ -12,7 +12,7 @@
 <p align="center">
   <img alt="Windows 10/11" src="https://img.shields.io/badge/Windows-10%20%7C%2011-1b3b6f?style=flat-square">
   <img alt="Linux X11 and Wayland" src="https://img.shields.io/badge/Linux-X11%20%7C%20Wayland-1b3b6f?style=flat-square">
-  <img alt="Offline, no telemetry" src="https://img.shields.io/badge/offline-no%20telemetry-2a8a6a?style=flat-square">
+  <img alt="Local, no telemetry" src="https://img.shields.io/badge/local-no%20telemetry-2a8a6a?style=flat-square">
   <img alt="Rust and Tauri 2" src="https://img.shields.io/badge/Rust%20%2B%20Tauri%202-engine-c8742c?style=flat-square">
   <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-e0b23a?style=flat-square">
 </p>
@@ -41,7 +41,7 @@ Most macro recorders give you a big red button and a list of coordinates. Chud i
 - **Automation without scripts.** Stack visual blocks: repeat, if, wait until, variables, expressions, nested macros.
 - **It can see the screen.** Wait for an image, a colour or a piece of text, then click it wherever it appears.
 - **Gamepads included.** Record XInput or evdev pads and replay them on a virtual controller.
-- **Honest by design.** It works offline, shows when it is recording, has an emergency stop that always works, and never works around the operating system's protections.
+- **Honest by design.** Everything stays on your computer, it shows when it is recording, has an emergency stop that always works, and never works around the operating system's protections.
 
 ## ⬇ Download
 
@@ -49,8 +49,18 @@ Get the latest build from **[Releases](https://github.com/BigFatDeuce/Chud-Input
 
 | System | Files |
 |---|---|
-| Windows 10/11 | a portable `.zip` or `.exe`, nothing to install |
+| Windows 10/11 | **Installer**: `Chud Input Recorder_x.y.z_x64-setup.exe` (per-user, no admin rights, adds a Start menu entry and an uninstaller) |
+| | **Portable**: `chud-input-recorder.exe` (or the `.zip`), nothing to install, runs from any folder |
 | Linux (preview) | AppImage, `.deb` and `.rpm` |
+
+**Updates.** On first launch, Chud asks whether it may check for updates. If you say yes, it looks at this
+repository's latest release at most once a day; you can also check by hand in **About**, and change your mind in
+**Settings**. Updates are downloaded from GitHub and their signature is checked before anything is replaced. The
+installer, the portable `.exe` and the AppImage update themselves; with a `.deb` or `.rpm`, Chud updates through the
+package (your system may ask for your password) or points you to the release page.
+
+> [!NOTE]
+> Version 0.1.0 had no updater: download 0.2.0 once by hand, later versions update from inside the app.
 
 ## ⚡ Quick start
 
@@ -132,6 +142,11 @@ Combine them with not, all and any.
 - Freezes the screen and gives you zoom and a pixel loupe on every monitor.
 - **Test now** runs a search before you run the whole flow.
 
+**Saved flows**
+- A flow is saved with its macro (autosave, **Ctrl+S**, and on quit), so it is still there in the next session.
+- The **Flow** page lists every saved flow; open one, or create a new flow from scratch.
+- **Reuse a flow** copies the blocks of another saved flow, with its pictures, into the current one.
+
 ### Live: see every input
 
 <img src="docs/screenshots/live.png" alt="Live view: keys glow when pressed, pointer position across monitors and raw motion" width="100%">
@@ -177,7 +192,9 @@ The honest, per-feature status, including what is still missing, is in **[docs/R
 ## 🔒 Privacy and safety
 
 - **Nothing leaves your computer**
-  - No network connections, no accounts, no telemetry.
+  - No accounts, no telemetry, and your recordings and keystrokes are never sent anywhere.
+  - The only network access is the update check, and only if you allow it: it downloads `latest.json`
+    from this repository's GitHub releases, and sends nothing about you or your macros.
   - Fonts are bundled, so the app works fully offline.
 - **Recording is always visible**: an overlay, the tray icon, the window title and a timer.
 - **Excluded applications**
@@ -269,7 +286,7 @@ These documents are in French:
 
 ## 🇫🇷 Français
 
-**Chud Input Recorder** enregistre, édite, automatise et rejoue le clavier, la souris et les manettes, sous Windows et Linux, entièrement hors ligne.
+**Chud Input Recorder** enregistre, édite, automatise et rejoue le clavier, la souris et les manettes, sous Windows et Linux, sans rien envoyer sur Internet.
 
 ### Démarrage rapide
 
@@ -283,6 +300,7 @@ These documents are in French:
 
 ### Fonctions
 
+- **Téléchargement** : un installateur (`…_x64-setup.exe`, par utilisateur, sans droits administrateur) ou une version portable (`chud-input-recorder.exe`, rien à installer). Les mises à jour se font depuis l'application (**À propos**), après votre accord.
 - **Bibliothèque**
   - Dossiers, favoris, étiquettes, recherche et corbeille.
   - Sauvegarde automatique et historique des versions.
@@ -297,11 +315,12 @@ These documents are in French:
 - **Flow**
   - L'automatisation par blocs : boucles, conditions, variables, expressions et macros imbriquées.
   - La **recherche à l'écran** trouve une image, une couleur ou un texte, puis clique dessus, l'attend ou s'en sert comme condition.
+  - Les flux sont enregistrés avec leur macro (automatiquement et avec **Ctrl+S**) ; la page **Flow** les liste, et **Reprendre un flux** copie les blocs d'un autre flux enregistré.
 - **Direct** : chaque touche, clic, mouvement et manette, en temps réel, sans rien enregistrer.
 
 ### Vie privée et sécurité
 
-- Aucune donnée n'est envoyée sur le réseau, et il n'y a aucune télémétrie.
+- Aucune frappe ni aucun enregistrement n'est envoyé sur le réseau, et il n'y a aucune télémétrie. Le seul accès réseau est la recherche de mises à jour, si vous l'autorisez.
 - L'enregistrement est toujours signalé.
 - Les gestionnaires de mots de passe sont exclus par défaut, et vous pouvez exclure d'autres applications.
 - L'arrêt d'urgence est disponible à tout moment, et les touches maintenues sont relâchées à l'arrêt.

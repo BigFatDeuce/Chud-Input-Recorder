@@ -58,6 +58,7 @@ Plateformes de vérification : Windows 11 (3 écrans, 100–200 % de mise à l'�
 | Texte à l'écran (OCR) | Partiel | Windows : OCR intégré, hors ligne (vérifié). Linux : pas d'OCR pour l'instant. |
 | Recherche à l'écran sous Wayland | À faire | Wayland ne laisse que le compositeur lire l'écran ; une session X11 est nécessaire (message explicite) |
 | Sélecteur d'écran (capture figée, zoom, loupe, multi-écrans, image/zone/point) | Fait | essais réels sur 3 écrans |
+| Flux enregistrés et réutilisables : page **Flux** listant les flux, création d'un flux, enregistrement (automatique, Ctrl+S, à la fermeture), **Reprendre un flux** (copie les blocs et les images d'un autre flux, conflits d'images résolus) | Fait | test unitaire `importing_a_flow_brings_its_images_and_resolves_clashes` ; essai réel 0.2.0 : flux créé, enregistré, repris dans un autre, retrouvés après redémarrage |
 | Déclencheurs | Partiel | raccourcis globaux par macro uniquement ; à faire : au démarrage, à l'activation d'une fenêtre, horaire |
 
 ## Bibliothèque et données
@@ -68,6 +69,8 @@ Plateformes de vérification : Windows 11 (3 écrans, 100–200 % de mise à l'�
 | Format ouvert `.chud` (ZIP) et export/import JSON intégral | Fait | tests aller-retour (événements, flux, images) ; voir `FORMAT.md` |
 | Sauvegarde automatique, historique des versions | Fait | |
 | Mode portable (`portable.flag` à côté de l'exécutable) | Fait | |
+| Installateur Windows (NSIS, par utilisateur, sans droits administrateur, français/anglais) et exécutable portable | Fait | essai réel : installation silencieuse, lancement, désinstallation (les données de l'utilisateur sont gardées) |
+| Mises à jour depuis l'application (**À propos**) : installateur, exécutable portable, AppImage ; `.deb`/`.rpm` par le paquet | Partiel | essais réels Windows de bout en bout avec un serveur local : portable 0.2.0 → 0.2.1 (exécutable remplacé, relancé, données gardées) et installé 0.2.0 → 0.2.1 ; fichier modifié et signature d'une autre version **refusés**. Linux : construit et signé, mise à jour pas encore essayée sur un vrai bureau |
 | Profils nommés de réglages | À faire | aujourd'hui : réglages par défaut globaux + réglages propres à chaque macro |
 
 ## Interface
@@ -83,7 +86,9 @@ Plateformes de vérification : Windows 11 (3 écrans, 100–200 % de mise à l'�
 
 | Engagement | État |
 |---|---|
-| Aucune connexion réseau, aucune télémétrie | Fait |
+| Aucune télémétrie ; aucune frappe ni aucun enregistrement envoyé | Fait |
+| Seul accès réseau : la recherche de mises à jour, **sur accord** (question au premier lancement, modifiable dans Réglages), au plus une fois par jour ; elle lit `latest.json` sur GitHub et n'envoie rien sur l'utilisateur | Fait |
+| Mises à jour signées (minisign) et liées à leur numéro de version ; rien n'est remplacé sans signature valide | Fait — vérifié par des essais de fichiers piégés |
 | Indication claire quand un enregistrement est actif | Fait |
 | Exclusion d'applications, protection des données sensibles | Fait (sauf Wayland, voir plus haut) |
 | Arrêt d'urgence à tout moment, relâchement des touches et boutons | Fait |

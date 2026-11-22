@@ -41,6 +41,63 @@ pub struct Flow {
     pub blocks: Vec<Node>,
 }
 
+impl Flow {
+    /// Ids of the macro images this flow searches for (`Target::Image`).
+    pub fn image_ids(&self) -> std::collections::BTreeSet<String> {
+        let mut out = std::collections::BTreeSet::new();
+        if let Ok(v) = serde_json::to_value(self) {
+            walk_image_refs(&v, &mut |id| {
+                out.insert(id.to_string());
+            });
+        }
+        out
+    }
+
+    /// Points image targets at new ids (`old → new`); others are untouched.
+    pub fn rename_images(&mut self, map: &HashMap<String, String>) {
+        if map.is_empty() {
+            return;
+        }
+        let Ok(mut v) = serde_json::to_value(&*self) else { return };
+        rename_image_refs(&mut v, map);
+        if let Ok(f) = serde_json::from_value(v) {
+            *self = f;
+        }
+    }
+}
+
+/// An image target, whatever block or condition holds it, serialises as
+/// `{"kind": "image", "image": "<id>", …}`.
+fn image_ref(m: &serde_json::Map<String, serde_json::Value>) -> Option<&str> {
+    if m.get("kind").and_then(|k| k.as_str()) == Some("image") { m.get("image").and_then(|i| i.as_str()) } else { None }
+}
+
+fn walk_image_refs(v: &serde_json::Value, f: &mut dyn FnMut(&str)) {
+    match v {
+        serde_json::Value::Object(m) => {
+            if let Some(id) = image_ref(m) {
+                f(id);
+            }
+            m.values().for_each(|c| walk_image_refs(c, f));
+        }
+        serde_json::Value::Array(a) => a.iter().for_each(|c| walk_image_refs(c, f)),
+        _ => {}
+    }
+}
+
+fn rename_image_refs(v: &mut serde_json::Value, map: &HashMap<String, String>) {
+    match v {
+        serde_json::Value::Object(m) => {
+            if let Some(new) = image_ref(m).and_then(|id| map.get(id)).cloned() {
+                m.insert("image".into(), serde_json::Value::String(new));
+            }
+            m.values_mut().for_each(|c| rename_image_refs(c, map));
+        }
+        serde_json::Value::Array(a) => a.iter_mut().for_each(|c| rename_image_refs(c, map)),
+        _ => {}
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 pub struct Node {
     #[serde(default)]

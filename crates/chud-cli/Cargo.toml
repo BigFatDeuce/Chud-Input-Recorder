@@ -9,9 +9,9 @@ repository.workspace = true
 authors.workspace = true
 
 [dependencies]
-chud-core = { version = "0.1.0", path = "../chud-core" }
-chud-engine = { version = "0.1.0", path = "../chud-engine" }
-chud-platform = { version = "0.1.0", path = "../chud-platform" }
+chud-core = { path = "../chud-core" }
+chud-engine = { path = "../chud-engine" }
+chud-platform = { path = "../chud-platform" }
 crossbeam-channel = "0.5.17"
 serde_json = "1.0.154"
 

@@ -108,7 +108,7 @@ export function NavRail() {
   const setView = useStore((s) => s.setView);
   const activeDoc = useStore((s) => s.activeDoc);
   const btn = (n: (typeof NAV)[number]) => {
-    const needsDoc = (n.view === "studio" || n.view === "flow") && !activeDoc;
+    const needsDoc = n.view === "studio" && !activeDoc;
     return (
       <button
         key={n.view}

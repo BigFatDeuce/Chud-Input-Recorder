@@ -57,6 +57,11 @@ pub struct AppSettings {
     pub minimize_on_record: bool,
     /// Soft beeps during the recording countdown (last seconds, then "go").
     pub countdown_sound: bool,
+    /// Look for a new version at startup (at most once a day). `None`: the
+    /// user has not been asked yet; nothing is checked until they answer.
+    pub update_check: Option<bool>,
+    /// Last update check (Unix ms).
+    pub update_last_check_ms: i64,
     /// Macros started by `Trigger(slot)` hotkeys.
     pub triggers: Vec<MacroTrigger>,
 }
@@ -91,6 +96,8 @@ impl Default for AppSettings {
             minimize_on_play: true,
             minimize_on_record: true,
             countdown_sound: true,
+            update_check: None,
+            update_last_check_ms: 0,
             triggers: Vec::new(),
         }
     }

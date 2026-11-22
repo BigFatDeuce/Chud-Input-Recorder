@@ -5,6 +5,7 @@ import { Logo } from "../components/Logo";
 import { t, useLang } from "../i18n";
 import { hotkeyFor } from "../lib/actions";
 import { useStore } from "../lib/store";
+import { UpdatePanel } from "../lib/update";
 
 const REPO = "https://github.com/BigFatDeuce/Chud-Input-Recorder";
 
@@ -51,6 +52,7 @@ export function AboutView() {
           <p className="muted">{t("about.open_body")}</p>
         </div>
       </div>
+      <UpdatePanel />
       <div className="row" style={{ gap: 10, justifyContent: "center", marginTop: 18 }}>
         <button className="btn" onClick={() => openUrl(REPO).catch(() => {})}>
           <ExternalLink size={14} /> GitHub

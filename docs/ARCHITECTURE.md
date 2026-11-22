@@ -318,3 +318,29 @@ basique reste un clic sur « Lire ».
 - Interface : tests Vitest (arbre Flow, paliers de zoom…) et vérification de bout en bout sur
   l'application réelle via le protocole de débogage de WebView2.
 - `cargo clippy --workspace --all-targets` sans avertissement sur les deux systèmes.
+
+## Mises à jour
+
+- `app/src-tauri/src/update.rs` s'appuie sur `tauri-plugin-updater`. Il distingue trois modes :
+  - **installateur** (NSIS, AppImage, `.deb`, `.rpm`, d'après le type de paquet inscrit dans le binaire) : le greffon
+    télécharge, vérifie et installe, puis Chud redémarre ;
+  - **portable** (exécutable Windows sans paquet) : le greffon cherche la cible `windows-x86_64-portable` de
+    `latest.json` ; le nouvel exécutable vérifié est écrit à côté (`.new`), l'ancien est renommé `.old`, le nouveau
+    prend sa place et est relancé avec `--updated` ; il supprime `.old` dès que l'ancien processus est sorti ;
+  - **manuel** (autres cas) : la page de la version est ouverte.
+- Avant de quitter pour une mise à jour, `shutdown` lance l'arrêt d'urgence (touches relâchées) et enregistre les
+  macros ouvertes.
+- Les signatures sont liées au numéro de version (`requireSignedVersion`) : un vrai fichier présenté comme une autre
+  version est refusé. La clé privée de signature n'est jamais dans le dépôt.
+- La recherche automatique est désactivée tant que l'utilisateur n'a pas répondu à la question du premier lancement
+  (`update_check: null`), et n'a lieu qu'une fois par 20 h au plus (`update_last_check_ms`).
+- `latest.json` (publié avec chaque version) contient les entrées `windows-x86_64-nsis`, `windows-x86_64-portable`,
+  `linux-x86_64-appimage`, `linux-x86_64-deb` et `linux-x86_64-rpm`.
+
+## Flux enregistrés
+
+- Un flux vit dans sa macro (`.chud`) : il est enregistré avec elle. La page **Flux** sans macro ouverte liste les
+  macros dont le résumé indique un flux (`Summary::has_flow`).
+- `doc_import_flow` copie le flux d'une autre macro (ouverte ou dans la bibliothèque) avec les images qu'il utilise
+  (`Flow::image_ids`) ; une image de même nom mais différente reçoit un nouveau nom et les références sont renommées
+  (`Flow::rename_images`).

@@ -12,6 +12,7 @@ mod logger;
 mod placement;
 mod screen;
 mod settings;
+mod update;
 
 use std::collections::HashMap;
 use std::sync::Arc;
@@ -303,6 +304,13 @@ pub fn show_main(app: &AppHandle) {
 }
 
 pub fn quit(app: &AppHandle) {
+    shutdown(app);
+    app.exit(0);
+}
+
+/// Stops everything cleanly before the process ends: releases what playback
+/// holds, saves the open macros (when autosave is on), stops the engine.
+pub fn shutdown(app: &AppHandle) {
     let state = app.state::<App>();
     // Never leave anything held or running behind.
     state.engine.emergency_stop();
@@ -314,12 +322,12 @@ pub fn quit(app: &AppHandle) {
     }
     std::thread::sleep(Duration::from_millis(60));
     state.engine.shutdown();
-    app.exit(0);
 }
 
 pub fn run() {
     let paths = Paths::resolve();
     logger::init(&paths.logs_dir);
+    update::clean_after_update();
     log::info!("Chud Input Recorder {} starting (portable: {})", env!("CARGO_PKG_VERSION"), paths.portable);
     let settings = settings::load(&paths.settings_file);
 
@@ -363,7 +371,9 @@ pub fn run() {
         .plugin(tauri_plugin_single_instance::init(|app, _args, _cwd| show_main(app)))
         .plugin(tauri_plugin_dialog::init())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .manage(state)
+        .manage(update::Pending::default())
         .setup(move |app| {
             let handle = app.handle().clone();
             std::thread::Builder::new().name("chud-events".into()).spawn({
@@ -405,6 +415,7 @@ pub fn run() {
             if let Err(e) = overlay {
                 log::warn!("indicator window unavailable: {e}");
             }
+            update::check_in_background(&handle);
             Ok(())
         })
         .on_window_event(|window, event| {
@@ -472,6 +483,7 @@ pub fn run() {
             commands::doc_set_settings,
             commands::doc_set_markers,
             commands::doc_set_flow,
+            commands::doc_import_flow,
             commands::doc_stats,
             commands::doc_repetitions,
             commands::doc_extract,
@@ -482,6 +494,9 @@ pub fn run() {
             commands::record_pause,
             commands::record_marker,
             commands::local_key,
+            update::update_check,
+            update::update_install,
+            update::update_mode,
             commands::play,
             commands::play_stop,
             commands::play_pause,

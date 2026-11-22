@@ -2,7 +2,7 @@
   "$schema": "https://schema.tauri.app/config/2",
   "productName": "Chud Input Recorder",
   "mainBinaryName": "chud-input-recorder",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "identifier": "com.bigfatdeuce.chud-input-recorder",
   "build": {
     "beforeDevCommand": "npm run dev",
@@ -32,7 +32,10 @@
   },
   "bundle": {
     "active": true,
-    "targets": "all",
+    "targets": ["nsis", "appimage", "deb", "rpm"],
+    "createUpdaterArtifacts": true,
+    "publisher": "Chud Input Recorder contributors",
+    "homepage": "https://github.com/BigFatDeuce/Chud-Input-Recorder",
     "category": "Utility",
     "shortDescription": "Record, edit and replay keyboard, mouse and gamepad input",
     "longDescription": "Chud Input Recorder records keyboard, mouse and gamepad input with precise timing, lets you edit recordings on a timeline, and replays them with loops, conditions and automation blocks. Everything stays on your computer.",
@@ -45,8 +48,23 @@
       "../../assets/brand/chud-input-icon/icon.icns",
       "../../assets/brand/chud-input-icon/icon.ico"
     ],
+    "windows": {
+      "nsis": {
+        "installMode": "currentUser",
+        "languages": ["English", "French"],
+        "displayLanguageSelector": false
+      }
+    },
     "linux": {
       "deb": { "depends": [] }
+    }
+  },
+  "plugins": {
+    "updater": {
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IDVGMDg4NEU4NDREQjJFQ0MKUldUTUx0dEU2SVFJWDhNNnVDQy9sRXVtUUVIbVlHYm0yMlo3N1pQVWRGQnhWc0R0OC8yZ3FJckMK",
+      "endpoints": ["https://github.com/BigFatDeuce/Chud-Input-Recorder/releases/latest/download/latest.json"],
+      "requireSignedVersion": true,
+      "windows": { "installMode": "passive" }
     }
   }
 }

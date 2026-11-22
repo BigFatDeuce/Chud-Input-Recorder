@@ -7,8 +7,8 @@ repository.workspace = true
 authors.workspace = true
 
 [dependencies]
-chud-core = { version = "0.1.0", path = "../chud-core" }
-chud-platform = { version = "0.1.0", path = "../chud-platform" }
+chud-core = { path = "../chud-core" }
+chud-platform = { path = "../chud-platform" }
 crossbeam-channel = "0.5.17"
 log = "0.4.35"
 parking_lot = "0.13.0"

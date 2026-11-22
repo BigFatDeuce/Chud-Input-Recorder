@@ -27,6 +27,7 @@ import type {
   SnapshotInfo,
   Stats,
   Target,
+  UpdateInfo,
   TimerReport,
   TrashItem,
   Version,
@@ -51,6 +52,8 @@ export const api = {
   diagTimer: () => invoke<TimerReport>("diag_timer"),
   engineStatus: () => invoke<EngineStatus>("engine_status"),
   quit: () => invoke<void>("quit_app"),
+  updateCheck: () => invoke<UpdateInfo>("update_check"),
+  updateInstall: () => invoke<void>("update_install"),
 
   list: () => invoke<Listing>("library_list"),
   createFolder: (parent: string, name: string) => invoke<string>("library_create_folder", { parent, name }),
@@ -80,6 +83,7 @@ export const api = {
   docSetSettings: (id: string, settings: PlaybackSettings) => invoke<void>("doc_set_settings", { id, settings }),
   docSetMarkers: (id: string, markers: Marker[]) => invoke<void>("doc_set_markers", { id, markers }),
   docSetFlow: (id: string, flow: Flow | null) => invoke<void>("doc_set_flow", { id, flow }),
+  docImportFlow: (id: string, from: string) => invoke<DocPayload>("doc_import_flow", { id, from }),
   docStats: (id: string) => invoke<Stats>("doc_stats", { id }),
   docRepetitions: (id: string, minLen: number, maxResults: number) =>
     invoke<Repetition[]>("doc_repetitions", { id, minLen, maxResults }),
