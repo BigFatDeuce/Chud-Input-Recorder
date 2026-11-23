@@ -34,3 +34,7 @@ dirs = "7.0.0"
 serde = { version = "1.0.229", features = ["derive"] }
 chrono = { version = "0.4.45", default-features = false, features = ["clock", "std"] }
 tauri-plugin-updater = "2.14.1"
+
+[target.'cfg(target_os = "linux")'.dependencies]
+# Same version as the tray icon's.
+libloading = "0.7"

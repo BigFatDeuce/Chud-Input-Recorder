@@ -180,6 +180,39 @@ export interface AppSettings {
   minimize_on_play: boolean;
   minimize_on_record: boolean;
   triggers: MacroTrigger[];
+  automation: AutomationSettings;
+}
+
+/** Macros that start by themselves. */
+export interface AutomationSettings {
+  enabled: boolean;
+  /** Countdown before a macro starts. */
+  warning_s: number;
+  rules: Automation[];
+}
+
+export type AutomationWhen =
+  | { type: "startup"; delay_s: number }
+  | { type: "window"; title: string; process: string; cooldown_s: number }
+  /** Monday first. */
+  | { type: "daily"; hour: number; minute: number; days: boolean[] }
+  | { type: "interval"; minutes: number };
+
+export interface Automation {
+  id: string;
+  enabled: boolean;
+  macro_id: string;
+  use_flow: boolean;
+  stop_on_input: boolean;
+  when: AutomationWhen;
+}
+
+export interface AutomationStatus {
+  enabled: boolean;
+  /** After an emergency stop, until resumed. */
+  suspended: boolean;
+  pending: { rule: string; macro_name: string; remaining_s: number } | null;
+  last: Record<string, { at_ms: number; what: string }>;
 }
 
 export interface MacroTrigger {

@@ -5,6 +5,7 @@
 //! documents with their undo history. The web interface renders state and
 //! sends commands.
 
+mod automation;
 mod commands;
 mod docs;
 mod library;
@@ -44,6 +45,8 @@ pub struct Inner {
     /// The last capture of every screen, while the picker is open. Kept in
     /// memory only.
     pub snapshot: Mutex<Option<chud_core::vision::Screenshot>>,
+    /// Automatic triggers: suspension, cancellation, last status.
+    pub automation: automation::Shared,
 }
 
 #[derive(Clone)]
@@ -103,6 +106,26 @@ fn place_overlay(app: &AppHandle, top: bool) {
     }
 }
 
+/// Shows the floating indicator where the settings want it.
+pub fn show_indicator(app: &AppHandle) {
+    let h = app.clone();
+    let _ = app.run_on_main_thread(move || {
+        let top = h.state::<App>().settings.read().overlay.position != "bottom";
+        let Some(w) = h.get_webview_window("overlay") else { return };
+        // Windows activates a window shown by the application in front: the
+        // indicator must not take the focus from Chud's own window.
+        #[cfg(windows)]
+        let focused = h.get_webview_window("main").filter(|m| m.is_focused().unwrap_or(false));
+        place_overlay(&h, top);
+        let _ = w.show();
+        let _ = w.set_ignore_cursor_events(true);
+        #[cfg(windows)]
+        if let Some(hwnd) = focused.and_then(|m| m.hwnd().ok()) {
+            chud_platform::activate_own_window(hwnd.0 as isize);
+        }
+    });
+}
+
 /// Input made in Chud's own window is never recorded (so its buttons and
 /// shortcuts never end up in a take). A recording started while Chud has the
 /// focus, typically from its Record button, would therefore capture nothing
@@ -137,16 +160,12 @@ fn forward_events(app: AppHandle, rx: crossbeam_channel::Receiver<EngineEvent>) 
                     last_mode = s.mode;
                     keep_out_of_recording(&app, &state, s.mode, from_idle);
                     let show_play = state.settings.read().overlay.show_when_playing;
-                    let top = state.settings.read().overlay.position != "bottom";
-                    let visible = matches!(s.mode, Mode::Recording | Mode::Countdown) || (s.mode == Mode::Playing && show_play);
-                    if let Some(w) = app.get_webview_window("overlay") {
-                        if visible {
-                            place_overlay(&app, top);
-                            let _ = w.show();
-                            let _ = w.set_ignore_cursor_events(true);
-                        } else {
-                            let _ = w.hide();
-                        }
+                    let visible = matches!(s.mode, Mode::Recording | Mode::Countdown) || (s.mode == Mode::Playing && show_play)
+                        || (s.mode == Mode::Idle && state.automation.announcing());
+                    if visible {
+                        show_indicator(&app);
+                    } else if let Some(w) = app.get_webview_window("overlay") {
+                        let _ = w.hide();
                     }
                 }
                 if let Some(tray) = app.tray_by_id("main") {
@@ -233,15 +252,31 @@ fn autosave_loop(app: AppHandle) {
     }
 }
 
+/// Linux: the tray icon needs one of these libraries, and the crate that loads
+/// it panics (the whole application quits) when none is installed.
+#[cfg(target_os = "linux")]
+fn tray_available() -> bool {
+    ["libayatana-appindicator3.so.1", "libappindicator3.so.1", "libayatana-appindicator3.so", "libappindicator3.so"]
+        .iter()
+        // Safety: the same system libraries the tray is about to load.
+        .any(|n| unsafe { libloading::Library::new(n) }.is_ok())
+}
+
+#[cfg(not(target_os = "linux"))]
+fn tray_available() -> bool {
+    true
+}
+
 fn build_tray(app: &AppHandle) -> tauri::Result<()> {
     let show = MenuItem::with_id(app, "show", "Chud Input Recorder", true, None::<&str>)?;
     let record = MenuItem::with_id(app, "record", "● Record / Stop  (F9)", true, None::<&str>)?;
     let play = MenuItem::with_id(app, "play", "▶ Play / Stop  (F8)", true, None::<&str>)?;
     let emergency = MenuItem::with_id(app, "emergency", "■ Emergency stop  (Ctrl+Alt+Esc)", true, None::<&str>)?;
+    let auto = MenuItem::with_id(app, "automation", "⏯ Suspend / resume automatic triggers", true, None::<&str>)?;
     let quit_item = MenuItem::with_id(app, "quit", "Quit", true, None::<&str>)?;
     let sep = PredefinedMenuItem::separator(app)?;
     let sep2 = PredefinedMenuItem::separator(app)?;
-    let menu = Menu::with_items(app, &[&show, &sep, &record, &play, &emergency, &sep2, &quit_item])?;
+    let menu = Menu::with_items(app, &[&show, &sep, &record, &play, &emergency, &auto, &sep2, &quit_item])?;
     let icon = tauri::image::Image::from_bytes(include_bytes!("../../../assets/brand/chud-input-icon/png/icon-32.png"))?;
     TrayIconBuilder::with_id("main")
         .icon(icon)
@@ -270,6 +305,7 @@ fn build_tray(app: &AppHandle) -> tauri::Result<()> {
                     }
                 }
                 "emergency" => state.engine.emergency_stop(),
+                "automation" => state.automation.toggle(),
                 "quit" => quit(app),
                 _ => {}
             }
@@ -365,6 +401,7 @@ pub fn run() {
         minimized_for_play: Default::default(),
         minimized_for_record: Default::default(),
         snapshot: Mutex::default(),
+        automation: Default::default(),
     }));
 
     tauri::Builder::default()
@@ -376,13 +413,31 @@ pub fn run() {
         .manage(update::Pending::default())
         .setup(move |app| {
             let handle = app.handle().clone();
+            // Emergency stops are seen here first: `forward_events` can wait
+            // on the windows, suspending the automatic triggers must not.
+            let (ui_tx, ui_rx) = crossbeam_channel::unbounded();
+            std::thread::Builder::new().name("chud-dispatch".into()).spawn({
+                let h = handle.clone();
+                move || {
+                    for ev in ev_rx {
+                        automation::watch(&h, &ev);
+                        if ui_tx.send(ev).is_err() {
+                            break;
+                        }
+                    }
+                }
+            })?;
             std::thread::Builder::new().name("chud-events".into()).spawn({
                 let h = handle.clone();
-                move || forward_events(h, ev_rx)
+                move || forward_events(h, ui_rx)
             })?;
             std::thread::Builder::new().name("chud-autosave".into()).spawn({
                 let h = handle.clone();
                 move || autosave_loop(h)
+            })?;
+            std::thread::Builder::new().name("chud-automation".into()).spawn({
+                let h = handle.clone();
+                move || automation::run(h)
             })?;
             // The window starts hidden: it is sized to the screen first.
             if let Some(main) = app.get_webview_window("main") {
@@ -393,7 +448,9 @@ pub fn run() {
             if scale != 1.0 {
                 apply_ui_scale(&handle, scale);
             }
-            if let Err(e) = build_tray(&handle) {
+            if !tray_available() {
+                log::warn!("tray icon unavailable: no appindicator library installed");
+            } else if let Err(e) = build_tray(&handle) {
                 log::warn!("tray icon unavailable: {e}");
             }
             // Floating, click-through activity indicator.
@@ -438,7 +495,8 @@ pub fn run() {
             }
             if let tauri::WindowEvent::CloseRequested { api, .. } = event {
                 let app = window.app_handle();
-                let to_tray = app.state::<App>().settings.read().close_to_tray;
+                // Without a tray icon, a hidden window could not come back.
+                let to_tray = app.state::<App>().settings.read().close_to_tray && app.tray_by_id("main").is_some();
                 api.prevent_close();
                 if to_tray {
                     let _ = window.hide();
@@ -503,6 +561,10 @@ pub fn run() {
             commands::emergency_stop,
             commands::arm,
             commands::live_set,
+            automation::automation_status,
+            automation::automation_cancel,
+            automation::automation_suspend,
+            automation::foreground_after,
             commands::quit_app,
             screen::screen_snapshot,
             screen::screen_snapshot_pixels,

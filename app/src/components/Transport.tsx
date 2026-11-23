@@ -1,10 +1,12 @@
 // Bottom transport bar: record / play controls and the live status readout.
-import { Check, OctagonX, Pause, Play, Radio, Repeat, Square, Timer, Volume2, VolumeX } from "lucide-react";
+import { Check, OctagonX, Pause, Play, Radio, Repeat, Square, Timer, Volume2, VolumeX, X, Zap } from "lucide-react";
 import { useMemo } from "react";
 import { useContextMenu, type MenuEntry } from "./ui";
 import { tone } from "../lib/sound";
 import { t, useLang, fmtInt } from "../i18n";
 import { emergencyStop, hotkeyFor, playTarget, toggleRecording, togglePause, togglePlay } from "../lib/actions";
+import { api } from "../lib/api";
+import { useAutomation } from "../lib/automation";
 import { fmtTime } from "../lib/format";
 import { useStore } from "../lib/store";
 
@@ -86,10 +88,34 @@ function CountdownPicker() {
   );
 }
 
+/** Automatic triggers: on, suspended, or about to start a macro. */
+function AutomationChip() {
+  useLang();
+  const { enabled, suspended, pending } = useAutomation();
+  const setView = useStore((s) => s.setView);
+  if (pending)
+    return (
+      <button className="btn sm auto-cancel" onClick={() => api.automationCancel()}>
+        <X size={14} /> {t("common.cancel")}
+      </button>
+    );
+  if (!enabled) return null;
+  return suspended ? (
+    <button className="chip rec" onClick={() => api.automationSuspend(false)} title={t("auto.suspended_hint")}>
+      <Zap size={11} /> {t("auto.resume_long")}
+    </button>
+  ) : (
+    <button className="chip gold" onClick={() => setView("settings")} title={t("auto.on_hint")}>
+      <Zap size={11} /> {t("auto.on")}
+    </button>
+  );
+}
+
 export function Transport() {
   useLang();
   const status = useStore((s) => s.status);
   const fg = useStore((s) => s.foreground);
+  const pending = useAutomation((s) => s.pending);
   const docs = useStore((s) => s.docs);
   const listing = useStore((s) => s.listing);
   useStore((s) => s.activeDoc);
@@ -123,6 +149,10 @@ export function Transport() {
     clock = `${fmtTime(status.play_position_us, 1)} / ${fmtTime(status.play_duration_us, 1)}`;
     const it = status.iterations === 0 ? "∞" : String(status.iterations);
     sub = `${status.macro_name}${status.iterations !== 1 ? ` · ${t("transport.iteration")} ${status.iteration}/${it}` : ""}${status.block ? ` · ${status.block}` : ""}`;
+  } else if (pending) {
+    title = t("auto.announce");
+    clock = `${pending.remaining_s}`;
+    sub = pending.macro_name;
   } else {
     title = t("transport.ready");
     clock = "0:00.0";
@@ -182,6 +212,7 @@ export function Transport() {
       </div>
 
       <div className="transport-right">
+        <AutomationChip />
         {playing && status.iterations !== 1 && (
           <span className="chip gold">
             <Repeat size={11} /> {status.iteration}/{status.iterations === 0 ? "∞" : status.iterations}

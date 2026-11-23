@@ -20,6 +20,8 @@ pub mod timer;
 
 #[cfg(windows)]
 mod windows;
+#[cfg(windows)]
+pub use windows::activate_own_window;
 #[cfg(target_os = "linux")]
 mod linux;
 

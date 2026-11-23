@@ -2,14 +2,20 @@
 // while playing (optional). Lives in its own transparent window.
 import { listen } from "@tauri-apps/api/event";
 import { useEffect, useState } from "react";
+import { hotkeyText } from "./lib/actions";
 import { api } from "./lib/api";
+import { useAutomation, useAutomationEvents } from "./lib/automation";
 import { fmtTime } from "./lib/format";
+import { setKeyTable } from "./lib/keys";
 import type { EngineStatus } from "./lib/types";
 import { setLanguage, t, useLang } from "./i18n";
 
 export function Overlay() {
   useLang();
   const [s, setS] = useState<EngineStatus | null>(null);
+  const [stopKey, setStopKey] = useState("");
+  const pending = useAutomation((a) => a.pending);
+  useAutomationEvents();
   useEffect(() => {
     document.documentElement.classList.add("overlay-root");
     api.getSettings().then((st) => setLanguage(st.language)).catch(() => {});
@@ -19,6 +25,27 @@ export function Overlay() {
       un.then((f) => f());
     };
   }, []);
+  // Read for each announcement: the language and shortcut may have changed.
+  const announced = pending?.rule;
+  useEffect(() => {
+    if (!announced) return;
+    Promise.all([api.getSettings(), api.keyTable()])
+      .then(([st, keys]) => {
+        setKeyTable(keys);
+        setLanguage(st.language);
+        setStopKey(hotkeyText(st.hotkeys.find((h) => h.action === "emergency_stop")));
+      })
+      .catch(() => {});
+  }, [announced]);
+  if (pending && (!s || s.mode === "idle"))
+    return (
+      <div className="overlay-pill play auto" title={t("auto.announce")}>
+        <span className="ov-dot" />
+        <span className="ov-name">{pending.macro_name}</span>
+        <span className="ov-value">{pending.remaining_s} s</span>
+        {stopKey && <span className="ov-sub">■ {stopKey}</span>}
+      </div>
+    );
   if (!s || s.mode === "idle") return null;
 
   const rec = s.mode === "recording" || s.mode === "countdown";

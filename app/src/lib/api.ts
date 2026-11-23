@@ -3,6 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import type {
   AppInfo,
   AppSettings,
+  AutomationStatus,
   Check,
   DocImage,
   DocPayload,
@@ -31,6 +32,7 @@ import type {
   TimerReport,
   TrashItem,
   Version,
+  WindowInfo,
 } from "./types";
 
 export interface MetaPatch {
@@ -108,6 +110,11 @@ export const api = {
   arm: (id: string | null, useFlow: boolean) => invoke<void>("arm", { id, useFlow }),
   liveSet: (on: boolean) => invoke<void>("live_set", { on }),
   localKey: (key: Key, down: boolean) => invoke<void>("local_key", { key, down }),
+
+  automationStatus: () => invoke<AutomationStatus>("automation_status"),
+  automationCancel: () => invoke<void>("automation_cancel"),
+  automationSuspend: (on: boolean) => invoke<void>("automation_suspend", { on }),
+  foregroundAfter: (delayMs: number) => invoke<WindowInfo | null>("foreground_after", { delayMs }),
 
   /** Captures every screen (Chud hides meanwhile) for the picker. */
   screenSnapshot: () => invoke<SnapshotInfo>("screen_snapshot"),

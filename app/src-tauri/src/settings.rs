@@ -7,6 +7,8 @@ use chud_engine::RecordOptions;
 use chud_platform::Hotkey;
 use serde::{Deserialize, Serialize};
 
+use crate::automation::AutomationSettings;
+
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
 #[serde(default)]
 pub struct OverlaySettings {
@@ -64,6 +66,8 @@ pub struct AppSettings {
     pub update_last_check_ms: i64,
     /// Macros started by `Trigger(slot)` hotkeys.
     pub triggers: Vec<MacroTrigger>,
+    /// Macros that start by themselves.
+    pub automation: AutomationSettings,
 }
 
 /// Global hotkey slot bound to a library macro.
@@ -99,6 +103,7 @@ impl Default for AppSettings {
             update_check: None,
             update_last_check_ms: 0,
             triggers: Vec::new(),
+            automation: AutomationSettings::default(),
         }
     }
 }

@@ -59,7 +59,8 @@ Plateformes de vérification : Windows 11 (3 écrans, 100–200 % de mise à l'�
 | Recherche à l'écran sous Wayland | À faire | Wayland ne laisse que le compositeur lire l'écran ; une session X11 est nécessaire (message explicite) |
 | Sélecteur d'écran (capture figée, zoom, loupe, multi-écrans, image/zone/point) | Fait | essais réels sur 3 écrans |
 | Flux enregistrés et réutilisables : page **Flux** listant les flux, création d'un flux, enregistrement (automatique, Ctrl+S, à la fermeture), **Reprendre un flux** (copie les blocs et les images d'un autre flux, conflits d'images résolus) | Fait | test unitaire `importing_a_flow_brings_its_images_and_resolves_clashes` ; essai réel 0.2.0 : flux créé, enregistré, repris dans un autre, retrouvés après redémarrage |
-| Déclencheurs | Partiel | raccourcis globaux par macro uniquement ; à faire : au démarrage, à l'activation d'une fenêtre, horaire |
+| Raccourcis globaux par macro | Fait | |
+| Automatismes : fenêtre activée, heure précise (jours choisis), intervalle, démarrage de Chud ; compte à rebours annulable, suspension après un arrêt d'urgence | Partiel | Windows : 14 tests unitaires ; essais réels avec des macros d'attente (quatre déclencheurs, annulation, fenêtre quittée, application exclue, arrêt d'urgence et reprise, Chud occupé, enregistrement simultané, macro introuvable, zone de notification, Chud au premier plan). Pas encore essayés : écran verrouillé, mise en veille, « S'arrêter si j'interviens » avec une vraie frappe, arrêt d'urgence au clavier pendant l'annonce (essayé par commande), suspension depuis la zone de notification, Linux. Wayland : fenêtre active illisible, signalé dans la règle. |
 
 ## Bibliothèque et données
 
@@ -71,6 +72,8 @@ Plateformes de vérification : Windows 11 (3 écrans, 100–200 % de mise à l'�
 | Mode portable (`portable.flag` à côté de l'exécutable) | Fait | |
 | Installateur Windows (NSIS, par utilisateur, sans droits administrateur, français/anglais) et exécutable portable | Fait | essai réel : installation silencieuse, lancement, désinstallation (les données de l'utilisateur sont gardées) |
 | Mises à jour depuis l'application (**À propos**) : installateur, exécutable portable, AppImage ; `.deb`/`.rpm` par le paquet | Partiel | essais réels Windows de bout en bout avec un serveur local : portable 0.2.0 → 0.2.1 (exécutable remplacé, relancé, données gardées) et installé 0.2.0 → 0.2.1 ; fichier modifié et signature d'une autre version **refusés**. Linux : construit et signé, mise à jour pas encore essayée sur un vrai bureau |
+| Paquets Linux (AppImage, `.deb`, `.rpm`) compatibles avec les distributions courantes | Fait | construits sur Ubuntu 22.04 : l'AppImage n'exige que la glibc 2.35 (0.2.0, construite sur Fedora 45, exigeait la 2.44 et ne démarrait pas sur Nobara) ; essais réels sous Xvfb : AppImage lancée sous Ubuntu 22.04 et Fedora 45. Pas encore essayé sur un vrai bureau Linux |
+| Démarrage sous Linux sans bibliothèque d'icône de notification (`libayatana-appindicator3`) | Fait | l'application démarrait puis plantait ; elle démarre maintenant sans icône, et fermer la fenêtre la quitte (essais réels sous Fedora 45, avec et sans la bibliothèque) |
 | Profils nommés de réglages | À faire | aujourd'hui : réglages par défaut globaux + réglages propres à chaque macro |
 
 ## Interface
@@ -94,12 +97,12 @@ Plateformes de vérification : Windows 11 (3 écrans, 100–200 % de mise à l'�
 | Arrêt d'urgence à tout moment, relâchement des touches et boutons | Fait |
 | Aucun contournement des protections du système (UIPI, Wayland, contenu protégé) | Fait — ces limites sont expliquées, jamais contournées |
 | Captures d'écran de la recherche gardées en mémoire, jamais écrites ni envoyées | Fait — seules les images choisies par l'utilisateur sont enregistrées dans la macro |
-| Indicateur exclu des captures d'écran (pour ne pas fausser les recherches) | Partiel — demandé à Windows (`content_protected`), pas encore vérifié visuellement |
+| Indicateur exclu des captures d'écran (pour ne pas fausser les recherches) | Fait sous Windows — pendant une lecture : fenêtre visible, affinité `WDA_EXCLUDEFROMCAPTURE`, absente de la capture de sa zone. Linux : non vérifié |
+| Une macro ne démarre jamais seule sans annonce : automatismes coupés par défaut, compte à rebours, suspension après un arrêt d'urgence | Fait sous Windows (essais réels) |
 
 ## Prochaines étapes proposées
 
-1. Déclencheurs automatiques (au démarrage, fenêtre activée, horaire).
-2. Profils nommés de réglages.
-3. OCR sous Linux (moteur local, sans réseau).
-4. Transfert binaire des événements vers l'interface pour les très longues prises.
-5. Portage macOS.
+1. Profils nommés de réglages.
+2. OCR sous Linux (moteur local, sans réseau).
+3. Transfert binaire des événements vers l'interface pour les très longues prises.
+4. Portage macOS.

@@ -79,6 +79,7 @@ pub fn set_settings(app: tauri::AppHandle, state: State<App>, settings: AppSetti
     s.playback.speed = s.playback.speed.clamp(0.01, 100.0);
     s.glow = s.glow.clamp(0.0, 1.0);
     s.autosave_delay_ms = s.autosave_delay_ms.clamp(200, 60_000);
+    s.automation.sanitize();
     if !["auto", "fr", "en"].contains(&s.language.as_str()) {
         s.language = "auto".into();
     }
@@ -700,13 +701,25 @@ pub fn play(
     use_flow: bool,
 ) -> R<()> {
     let job = job_for(&state, &id, settings, selection.unwrap_or_default(), use_flow)?;
-    if state.settings.read().minimize_on_play
-        && let Some(w) = tauri::Manager::get_webview_window(&app, "main")
-            && w.minimize().is_ok() {
-                state.minimized_for_play.store(true, std::sync::atomic::Ordering::Release);
-            }
+    step_aside(&app, &state, false);
     state.engine.play(job);
     Ok(())
+}
+
+/// Minimizes Chud for a playback (restored when it ends). `if_focused`: only
+/// when its window would receive the input.
+pub(crate) fn step_aside(app: &AppHandle, state: &App, if_focused: bool) {
+    if state.settings.read().minimize_on_play
+        && let Some(w) = tauri::Manager::get_webview_window(app, "main")
+        && (!if_focused || w.is_focused().unwrap_or(false))
+        && w.minimize().is_ok()
+    {
+        state.minimized_for_play.store(true, std::sync::atomic::Ordering::Release);
+    }
+}
+
+pub(crate) fn macro_name(state: &App, id: &str) -> R<String> {
+    current_doc(state, id).map(|d| d.meta.name)
 }
 
 #[tauri::command]

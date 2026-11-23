@@ -240,9 +240,8 @@ basique reste un clic sur « Lire ».
   **image/texte/couleur à l'écran**, hasard, et leurs combinaisons (non, toutes, au moins une).
 - Expressions : petit langage sûr (arithmétique, comparaisons, `random`, variables), sans
   accès au système.
-- Déclencheurs : aujourd'hui, des **raccourcis globaux** associés à des macros (option : avec
-  ou sans leur Flow). Pas encore de déclencheur au démarrage, à l'activation d'une fenêtre ou
-  horaire.
+- Déclencheurs : des **raccourcis globaux** associés à des macros (option : avec ou sans leur
+  Flow), et les **automatismes** (voir « Automatismes » plus bas).
 - La liste et les champs exacts sont dans `FORMAT.md` §5–6.
 
 ## 9. Recherche à l'écran
@@ -263,7 +262,9 @@ basique reste un clic sur « Lire ».
 - **Données** : les captures restent en mémoire et sont effacées à la fermeture du sélecteur.
   Seules les images retenues par l'utilisateur sont stockées dans la macro (`images/*.png`).
 - L'indicateur d'enregistrement demande à Windows d'être exclu des captures
-  (`content_protected`) pour ne pas fausser les recherches (non encore vérifié visuellement).
+  (`content_protected`) pour ne pas fausser les recherches. Vérifié pendant une lecture : fenêtre
+  visible, affinité `WDA_EXCLUDEFROMCAPTURE`, absente de la capture de sa zone. Windows active une fenêtre affichée par
+  l'application au premier plan : `show_indicator` rend alors le focus à la fenêtre principale.
 
 ## 10. Fenêtre et interface
 
@@ -289,7 +290,8 @@ basique reste un clic sur « Lire ».
 
 ## 12. Confidentialité et permissions
 
-- Aucune connexion réseau n'est ouverte par l'application. Pas de télémétrie.
+- Aucune frappe ni aucun enregistrement n'est envoyé. Pas de télémétrie. Le seul accès réseau est la
+  recherche de mises à jour, sur accord de l'utilisateur (voir « Mises à jour »).
 - Indicateurs d'enregistrement : overlay discret toujours visible, icône de zone de
   notification, minuteur dans l'interface, titre de la fenêtre.
 - Applications exclues : l'enregistrement ignore les entrées quand l'une d'elles est au
@@ -336,6 +338,26 @@ basique reste un clic sur « Lire ».
   (`update_check: null`), et n'a lieu qu'une fois par 20 h au plus (`update_last_check_ms`).
 - `latest.json` (publié avec chaque version) contient les entrées `windows-x86_64-nsis`, `windows-x86_64-portable`,
   `linux-x86_64-appimage`, `linux-x86_64-deb` et `linux-x86_64-rpm`.
+
+## Automatismes
+
+- `app/src-tauri/src/automation.rs`. Une règle (`AppSettings::automation`) lance une macro quand une fenêtre devient
+  active, à une heure précise (jours choisis), à intervalle régulier ou au démarrage de Chud.
+- `Scheduler` décide, sans horloge ni accès système (tout arrive par `Tick`) : c'est la partie testée unitairement.
+  Le thread `chud-automation` le fait avancer toutes les 200 ms, annonce la macro, puis la lance.
+- Une règle vue pour la première fois (ajoutée, modifiée, réactivée) prend l'état présent comme point de départ :
+  une fenêtre déjà active ou une heure déjà passée ne déclenche rien. Une règle de démarrage ne vaut que si elle est
+  active au lancement de Chud.
+- Occupé (enregistrement, lecture, autre annonce, sélecteur d'écran) : un changement de fenêtre est ignoré, une règle
+  horaire attend (2 minutes au plus pour une heure fixe), un intervalle ou un démarrage attend que Chud soit libre.
+- Garde-fous : coupé par défaut ; compte à rebours de 3 à 60 s dans l'indicateur (toujours affiché) et dans la barre de
+  lecture, annulable ; abandon si la fenêtre attendue n'est plus active, si une application exclue ou l'écran de
+  verrouillage passe au premier plan ; un arrêt d'urgence annule l'annonce et **suspend** tous les automatismes jusqu'à
+  leur reprise. Une règle peut s'arrêter dès que l'utilisateur intervient (option active par défaut).
+- Un arrêt d'urgence traité par le moteur juste avant la commande de lecture n'aurait rien à arrêter : `start` revérifie
+  la suspension après `play`, et `watch` arrête la lecture après avoir suspendu. L'un des deux passe toujours après la
+  commande. `watch` a son propre fil (`chud-dispatch`), en amont de celui qui manipule les fenêtres.
+- La fenêtre active n'est lue que si une règle active en a besoin ; rien n'en est conservé ni journalisé.
 
 ## Flux enregistrés
 

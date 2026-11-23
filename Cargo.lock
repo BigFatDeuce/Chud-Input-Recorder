@@ -525,6 +525,7 @@ dependencies = [
  "crossbeam-channel",
  "dirs",
  "image",
+ "libloading",
  "log",
  "parking_lot 0.13.0",
  "serde",

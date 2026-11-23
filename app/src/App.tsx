@@ -16,6 +16,7 @@ import { liveBus } from "./lib/live";
 import { useCountdownSound } from "./lib/sound";
 import { useZoomShortcuts } from "./lib/zoom";
 import { UpdateQuestion, useUpdateEvents } from "./lib/update";
+import { useAutomationEvents } from "./lib/automation";
 import { useLocalKeyBridge } from "./lib/localKeys";
 import { LibraryView } from "./views/Library";
 import { StudioView } from "./views/Studio";
@@ -39,6 +40,9 @@ function noticeText(message: string): string {
   const k = NOTICE_KEYS[message];
   if (k) return t(k);
   if (message.startsWith("save_failed")) return `${t("error.save")} — ${message.slice(13)}`;
+  // "automation_<why>: <macro name or error>"
+  const auto = /^(automation_(?:busy|blocked|left|failed)): ([\s\S]*)$/.exec(message);
+  if (auto) return t(`notice.${auto[1]}` as TKey, { name: auto[2] });
   return message;
 }
 
@@ -52,6 +56,7 @@ export function App() {
   useZoomShortcuts();
   useLocalKeyBridge();
   useUpdateEvents();
+  useAutomationEvents();
 
   // Boot.
   useEffect(() => {

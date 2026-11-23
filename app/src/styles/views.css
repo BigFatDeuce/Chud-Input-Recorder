@@ -1756,6 +1756,31 @@ kbd.big {
   min-width: 140px;
   justify-content: center;
 }
+.auto-rule {
+  padding: 10px 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  background: rgba(1, 17, 40, 0.35);
+}
+.auto-rule + .auto-rule {
+  margin-top: 10px;
+}
+.auto-rule > .row:first-child {
+  min-height: 32px;
+}
+.auto-rule > .row:first-child .faint {
+  font-size: var(--fs-xs);
+  white-space: nowrap;
+}
+.auto-days {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+.privacy-list.auto-safety {
+  margin: 10px 0 6px;
+}
 .privacy-list {
   display: flex;
   flex-direction: column;

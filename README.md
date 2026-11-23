@@ -147,6 +147,16 @@ Combine them with not, all and any.
 - The **Flow** page lists every saved flow; open one, or create a new flow from scratch.
 - **Reuse a flow** copies the blocks of another saved flow, with its pictures, into the current one.
 
+### Automatic triggers
+
+Let a macro start by itself (**Settings › Automatic triggers**, off by default):
+- when a window becomes active, at a set time on chosen days, at regular intervals, or when Chud starts;
+- always after a visible countdown (3 to 60 s) that you can cancel;
+- never while recording or playing, or in front of an excluded application;
+- an emergency stop suspends every trigger until you resume them.
+
+Chud must be running: let it close to the tray.
+
 ### Live: see every input
 
 <img src="docs/screenshots/live.png" alt="Live view: keys glow when pressed, pointer position across monitors and raw motion" width="100%">
@@ -316,6 +326,7 @@ These documents are in French:
   - L'automatisation par blocs : boucles, conditions, variables, expressions et macros imbriquées.
   - La **recherche à l'écran** trouve une image, une couleur ou un texte, puis clique dessus, l'attend ou s'en sert comme condition.
   - Les flux sont enregistrés avec leur macro (automatiquement et avec **Ctrl+S**) ; la page **Flow** les liste, et **Reprendre un flux** copie les blocs d'un autre flux enregistré.
+- **Automatismes** (Réglages, coupés par défaut) : une macro peut démarrer quand une fenêtre devient active, à une heure précise, à intervalle régulier ou au démarrage de Chud, toujours après un compte à rebours annulable. Un arrêt d'urgence les suspend.
 - **Direct** : chaque touche, clic, mouvement et manette, en temps réel, sans rien enregistrer.
 
 ### Vie privée et sécurité

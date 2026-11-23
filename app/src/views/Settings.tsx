@@ -16,6 +16,7 @@ import {
   TriangleAlert,
   CircleDot,
   X,
+  Zap,
 } from "lucide-react";
 import { useMemo, useState, type ReactNode } from "react";
 import { HotkeyCapture, KeyPicker } from "../components/KeyPicker";
@@ -28,14 +29,16 @@ import { keyLabel } from "../lib/keys";
 import { useStore } from "../lib/store";
 import type { AppSettings, Hotkey, HotkeyAction, KeyFilter, RecordOptions } from "../lib/types";
 import { PlaybackEditor } from "../studio/PlaybackEditor";
+import { Automations } from "./Automations";
 
-type Section = "general" | "recording" | "playback" | "hotkeys" | "privacy" | "overlay" | "appearance" | "data";
+type Section = "general" | "recording" | "playback" | "hotkeys" | "automation" | "privacy" | "overlay" | "appearance" | "data";
 
 const SECTIONS: { id: Section; icon: typeof Globe; label: TKey }[] = [
   { id: "general", icon: Globe, label: "set.general" },
   { id: "recording", icon: CircleDot, label: "set.recording" },
   { id: "playback", icon: Clapperboard, label: "set.playback" },
   { id: "hotkeys", icon: Keyboard, label: "set.hotkeys" },
+  { id: "automation", icon: Zap, label: "auto.title" },
   { id: "privacy", icon: ShieldCheck, label: "set.privacy" },
   { id: "overlay", icon: Layers, label: "set.overlay" },
   { id: "appearance", icon: Palette, label: "set.appearance" },
@@ -82,7 +85,7 @@ export function SettingsView() {
             });
             if (ok) {
               const d = await api.defaultSettings();
-              await save({ ...d, library_dir: settings.library_dir, triggers: settings.triggers });
+              await save({ ...d, library_dir: settings.library_dir, triggers: settings.triggers, automation: { ...d.automation, rules: settings.automation.rules } });
             }
           }}
         >
@@ -99,6 +102,7 @@ export function SettingsView() {
           </Card>
         )}
         {section === "hotkeys" && <Hotkeys s={settings} set={set} />}
+        {section === "automation" && <Automations s={settings} set={set} Card={Card} />}
         {section === "privacy" && <Privacy s={settings} set={set} />}
         {section === "overlay" && <Overlay s={settings} set={set} />}
         {section === "appearance" && <Appearance s={settings} set={set} />}

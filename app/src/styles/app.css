@@ -631,6 +631,26 @@ html.overlay-root #root {
   color: var(--text-3);
 }
 
+.overlay-pill.auto {
+  max-width: 252px;
+  border-color: var(--line-gold);
+}
+.overlay-pill.auto .ov-dot {
+  background: var(--gold-400);
+  box-shadow: 0 0 10px rgba(249, 200, 58, 0.8);
+}
+.overlay-pill.auto .ov-sub {
+  flex: none;
+  font-size: var(--fs-xs);
+}
+.ov-name {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: var(--fs-sm);
+}
+
 /* ── shared helpers ── */
 .gold-text {
   background: linear-gradient(180deg, var(--gold-200), var(--gold-400) 55%, var(--gold-600));

@@ -79,6 +79,13 @@ pub(crate) fn window_process(hwnd: HWND) -> (u32, String) {
     (pid, process_name(pid))
 }
 
+/// Gives the focus back to one of this application's windows, while the
+/// application is already in front (a plain request to the system).
+pub fn activate_own_window(hwnd: isize) {
+    use windows::Win32::UI::WindowsAndMessaging::SetForegroundWindow;
+    let _ = unsafe { SetForegroundWindow(HWND(hwnd as *mut _)) };
+}
+
 pub(crate) fn window_info(hwnd: HWND) -> Option<WindowInfo> {
     if hwnd.is_invalid() {
         return None;
