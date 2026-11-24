@@ -39,7 +39,7 @@
     "category": "Utility",
     "shortDescription": "Record, edit and replay keyboard, mouse and gamepad input",
     "longDescription": "Chud Input Recorder records keyboard, mouse and gamepad input with precise timing, lets you edit recordings on a timeline, and replays them with loops, conditions and automation blocks. Everything stays on your computer.",
-    "copyright": "MIT License",
+    "copyright": "© 2026 BigFatDeuce. GPL-3.0-or-later",
     "icon": [
       "../../assets/brand/chud-input-icon/png/icon-32.png",
       "../../assets/brand/chud-input-icon/png/icon-128.png",

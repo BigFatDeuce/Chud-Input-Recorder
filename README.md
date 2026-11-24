@@ -14,7 +14,7 @@
   <img alt="Linux X11 and Wayland" src="https://img.shields.io/badge/Linux-X11%20%7C%20Wayland-1b3b6f?style=flat-square">
   <img alt="Local, no telemetry" src="https://img.shields.io/badge/local-no%20telemetry-2a8a6a?style=flat-square">
   <img alt="Rust and Tauri 2" src="https://img.shields.io/badge/Rust%20%2B%20Tauri%202-engine-c8742c?style=flat-square">
-  <img alt="MIT license" src="https://img.shields.io/badge/license-MIT-e0b23a?style=flat-square">
+  <img alt="GPL-3.0 license" src="https://img.shields.io/badge/license-GPL--3.0-e0b23a?style=flat-square">
 </p>
 
 <p align="center">
@@ -290,7 +290,7 @@ These documents are in French:
 
 ## License
 
-[MIT](LICENSE).
+© 2026 BigFatDeuce. The code is free software under the GPL-3.0-or-later (see [LICENSE](LICENSE)). Third-party components keep their own licences.
 
 ---
 
@@ -352,3 +352,7 @@ npx tauri dev
 - [Architecture](docs/ARCHITECTURE.md)
 - [Format de fichier](docs/FORMAT.md)
 - [État réel des fonctionnalités](docs/ROADMAP.md) : ce qui est fait, ce qui est vérifié et ce qui manque encore.
+
+### Licence
+
+© 2026 BigFatDeuce. Le code est un logiciel libre sous licence GPL-3.0 ou ultérieure (voir [LICENSE](LICENSE)). Les composants tiers gardent leur propre licence.
